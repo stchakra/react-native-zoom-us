@@ -7,7 +7,6 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.LifecycleEventListener;
-import com.facebook.react.bridge.ReadableMap;
 
 import us.zoom.sdk.ZoomSDK;
 import us.zoom.sdk.ZoomError;
@@ -45,7 +44,7 @@ public class RNZoomUsModule extends ReactContextBaseJavaModule implements ZoomSD
   }
 
   @ReactMethod
-  public void initialize(final ReadableMap params, final ReadableMap settings, final Promise promise) {
+  public void initialize(final String appKey, final String appSecret, final String webDomain, final Promise promise) {
     if (isInitialized) {
       promise.resolve("Already initialize Zoom SDK successfully.");
       return;
@@ -60,13 +59,7 @@ public class RNZoomUsModule extends ReactContextBaseJavaModule implements ZoomSD
           @Override
           public void run() {
             ZoomSDK zoomSDK = ZoomSDK.getInstance();
-            zoomSDK.initialize(
-              reactContext.getCurrentActivity(),
-              params.getString("clientKey"),
-              params.getString("clientSecret"),
-              params.getString("domain"),
-              RNZoomUsModule.this
-            );
+            zoomSDK.initialize(reactContext.getCurrentActivity(), appKey, appSecret, webDomain, RNZoomUsModule.this);
           }
       });
     } catch (Exception ex) {
@@ -76,7 +69,12 @@ public class RNZoomUsModule extends ReactContextBaseJavaModule implements ZoomSD
 
   @ReactMethod
   public void startMeeting(
-    final ReadableMap paramMap,
+    final String displayName,
+    final String meetingNo,
+    final String userId,
+    final int userType,
+    final String zoomAccessToken,
+    final String zoomToken,
     Promise promise
   ) {
     try {
@@ -88,7 +86,6 @@ public class RNZoomUsModule extends ReactContextBaseJavaModule implements ZoomSD
         return;
       }
 
-      final String meetingNo = paramMap.getString("meetingNumber");
       final MeetingService meetingService = zoomSDK.getMeetingService();
       if(meetingService.getMeetingStatus() != MeetingStatus.MEETING_STATUS_IDLE) {
         long lMeetingNo = 0;
@@ -108,11 +105,12 @@ public class RNZoomUsModule extends ReactContextBaseJavaModule implements ZoomSD
 
       StartMeetingOptions opts = new StartMeetingOptions();
       StartMeetingParamsWithoutLogin params = new StartMeetingParamsWithoutLogin();
-      params.displayName = paramMap.getString("userName");
-      params.meetingNo = paramMap.getString("meetingNumber");
-      params.userId = paramMap.getString("userId");
-      params.userType = paramMap.getInt("userType");
-      params.zoomAccessToken = paramMap.getString("zoomAccessToken");
+      params.displayName = displayName;
+      params.meetingNo = meetingNo;
+      params.userId = userId;
+      params.userType = userType;
+      params.zoomAccessToken = zoomAccessToken;
+      params.zoomToken = zoomToken;
 
       int startMeetingResult = meetingService.startMeetingWithParams(reactContext.getCurrentActivity(), params, opts);
       Log.i(TAG, "startMeeting, startMeetingResult=" + startMeetingResult);
@@ -127,7 +125,8 @@ public class RNZoomUsModule extends ReactContextBaseJavaModule implements ZoomSD
 
   @ReactMethod
   public void joinMeeting(
-    final ReadableMap paramMap,
+    final String displayName,
+    final String meetingNo,
     Promise promise
   ) {
     try {
@@ -142,14 +141,9 @@ public class RNZoomUsModule extends ReactContextBaseJavaModule implements ZoomSD
       final MeetingService meetingService = zoomSDK.getMeetingService();
 
       JoinMeetingOptions opts = new JoinMeetingOptions();
-      if(paramMap.hasKey("participantID")) opts.participant_id = paramMap.getString("participantID");
-      if(paramMap.hasKey("noAudio")) opts.no_audio = paramMap.getBoolean("noAudio");
-      if(paramMap.hasKey("noVideo")) opts.no_video = paramMap.getBoolean("noVideo");
-
       JoinMeetingParams params = new JoinMeetingParams();
-      params.displayName = paramMap.getString("userName");
-      params.meetingNo = paramMap.getString("meetingNumber");
-      if(paramMap.hasKey("password")) params.password = paramMap.getString("password");
+      params.displayName = displayName;
+      params.meetingNo = meetingNo;
 
       int joinMeetingResult = meetingService.joinMeetingWithParams(reactContext.getCurrentActivity(), params, opts);
       Log.i(TAG, "joinMeeting, joinMeetingResult=" + joinMeetingResult);
@@ -212,10 +206,6 @@ public class RNZoomUsModule extends ReactContextBaseJavaModule implements ZoomSD
   }
 
   @Override
-  public void onZoomAuthIdentityExpired(){
-  }
-
-  @Override
   public void onMeetingStatusChanged(MeetingStatus meetingStatus, int errorCode, int internalErrorCode) {
     Log.i(TAG, "onMeetingStatusChanged, meetingStatus=" + meetingStatus + ", errorCode=" + errorCode + ", internalErrorCode=" + internalErrorCode);
 
@@ -267,4 +257,7 @@ public class RNZoomUsModule extends ReactContextBaseJavaModule implements ZoomSD
   public void onHostPause() {}
   @Override
   public void onHostResume() {}
+   @Override
+  public void onZoomAuthIdentityExpired() {}
+  
 }

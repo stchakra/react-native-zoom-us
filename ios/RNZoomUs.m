@@ -34,8 +34,9 @@
 RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(
-  initialize: (NSDictionary *)data
-  withSettings: (NSDictionary *)settings
+  initialize: (NSString *)appKey
+  withAppSecret: (NSString *)appSecret
+  withWebDomain: (NSString *)webDomain
   withResolve: (RCTPromiseResolveBlock)resolve
   withReject: (RCTPromiseRejectBlock)reject
 )
@@ -51,26 +52,15 @@ RCT_EXPORT_METHOD(
     initializePromiseResolve = resolve;
     initializePromiseReject = reject;
 
-
-
-    MobileRTCSDKInitContext *context = [[MobileRTCSDKInitContext alloc] init];
-    context.domain = data[@"domain"];;
-    context.enableLog = YES;
-    context.locale = MobileRTC_ZoomLocale_Default;
-
-    //Note: This step is optional, Method is uesd for iOS Replaykit Screen share integration,if not,just ignore this step.
-    // context.appGroupId = @"group.zoom.us.MobileRTCSampleExtensionReplayKit";
-    BOOL initializeSuc = [[MobileRTC sharedRTC] initialize:context];
-    [[[MobileRTC sharedRTC] getMeetingSettings]
-      disableShowVideoPreviewWhenJoinMeeting:settings[@"disableShowVideoPreviewWhenJoinMeeting"]];
+    [[MobileRTC sharedRTC] setMobileRTCDomain:webDomain];
 
     MobileRTCAuthService *authService = [[MobileRTC sharedRTC] getAuthService];
     if (authService)
     {
       authService.delegate = self;
 
-      authService.clientKey = data[@"clientKey"];
-      authService.clientSecret = data[@"clientSecret"];
+      authService.clientKey = appKey;
+      authService.clientSecret = appSecret;
 
       [authService sdkAuth];
     } else {
@@ -82,7 +72,12 @@ RCT_EXPORT_METHOD(
 }
 
 RCT_EXPORT_METHOD(
-  startMeeting: (NSDictionary *)data
+  startMeeting: (NSString *)displayName
+  withMeetingNo: (NSString *)meetingNo
+  withUserId: (NSString *)userId
+  withUserType: (NSInteger)userType
+  withZoomAccessToken: (NSString *)zoomAccessToken
+  withZoomToken: (NSString *)zoomToken
   withResolve: (RCTPromiseResolveBlock)resolve
   withReject: (RCTPromiseRejectBlock)reject
 )
@@ -96,11 +91,12 @@ RCT_EXPORT_METHOD(
       ms.delegate = self;
 
       MobileRTCMeetingStartParam4WithoutLoginUser * params = [[MobileRTCMeetingStartParam4WithoutLoginUser alloc]init];
-      params.userName = data[@"userName"];
-      params.meetingNumber = data[@"meetingNumber"];
-      params.userID = data[@"userId"];
-      params.userType = data[@"userType"];
-      params.zak = data[@"zoomAccessToken"];
+      params.userName = displayName;
+      params.meetingNumber = meetingNo;
+      params.userID = userId;
+      params.userType = (MobileRTCUserType)userType;
+      params.zak = zoomAccessToken;
+      params.userToken = zoomToken;
 
       MobileRTCMeetError startMeetingResult = [ms startMeetingWithStartParam:params];
       NSLog(@"startMeeting, startMeetingResult=%d", startMeetingResult);
@@ -111,7 +107,8 @@ RCT_EXPORT_METHOD(
 }
 
 RCT_EXPORT_METHOD(
-  joinMeeting: (NSDictionary *)data
+  joinMeeting: (NSString *)displayName
+  withMeetingNo: (NSString *)meetingNo
   withResolve: (RCTPromiseResolveBlock)resolve
   withReject: (RCTPromiseRejectBlock)reject
 )
@@ -124,18 +121,12 @@ RCT_EXPORT_METHOD(
     if (ms) {
       ms.delegate = self;
 
-      MobileRTCMeetingJoinParam * joinParam = [[MobileRTCMeetingJoinParam alloc]init];
-      joinParam.userName = data[@"userName"];
-      joinParam.meetingNumber = data[@"meetingNumber"];
-      joinParam.password =  data[@"password"];
-      joinParam.participantID = data[@"participantID"];
-      joinParam.zak = data[@"zoomAccessToken"];
-      joinParam.webinarToken =  data[@"webinarToken"];
-      joinParam.noAudio = data[@"noAudio"];
-      joinParam.noVideo = data[@"noVideo"];
+      NSDictionary *paramDict = @{
+        kMeetingParam_Username: displayName,
+        kMeetingParam_MeetingNumber: meetingNo
+      };
 
-      MobileRTCMeetError joinMeetingResult = [ms joinMeetingWithJoinParam:joinParam];
-
+      MobileRTCMeetError joinMeetingResult = [ms joinMeetingWithDictionary:paramDict];
       NSLog(@"joinMeeting, joinMeetingResult=%d", joinMeetingResult);
     }
   } @catch (NSError *ex) {
@@ -143,7 +134,6 @@ RCT_EXPORT_METHOD(
   }
 }
 
-// todo should be deleted
 RCT_EXPORT_METHOD(
   joinMeetingWithPassword: (NSString *)displayName
   withMeetingNo: (NSString *)meetingNo
@@ -160,12 +150,13 @@ RCT_EXPORT_METHOD(
     if (ms) {
       ms.delegate = self;
 
-      MobileRTCMeetingJoinParam * joinParam = [[MobileRTCMeetingJoinParam alloc]init];
-      joinParam.userName = displayName;
-      joinParam.meetingNumber = meetingNo;
-      joinParam.password = password;
+      NSDictionary *paramDict = @{
+        kMeetingParam_Username: displayName,
+        kMeetingParam_MeetingNumber: meetingNo,
+        kMeetingParam_MeetingPassword: password
+      };
 
-      MobileRTCMeetError joinMeetingResult = [ms joinMeetingWithJoinParam:joinParam];
+      MobileRTCMeetError joinMeetingResult = [ms joinMeetingWithDictionary:paramDict];
       NSLog(@"joinMeeting, joinMeetingResult=%d", joinMeetingResult);
     }
   } @catch (NSError *ex) {
