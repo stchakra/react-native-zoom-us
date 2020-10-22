@@ -2,7 +2,7 @@
 //  MobileRTCMeetingUserInfo.h
 //  MobileRTC
 //
-//  Created by Robust Hu on 2017/2/27.
+//  Created by Zoom Video Communications on 2017/2/27.
 //  Copyright © 2019年 Zoom Video Communications, Inc. All rights reserved.
 //
 
@@ -118,6 +118,10 @@ typedef enum {
  @brief The ID of user.
  */
 @property (nonatomic, assign) NSUInteger       userID;
+/*!
+ @brief The ID of participantID.
+ */
+@property (nonatomic, retain) NSString* _Nullable       participantID;
 /*!
  @brief The screen name of user.
  */
