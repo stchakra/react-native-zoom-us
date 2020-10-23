@@ -2,7 +2,7 @@
 //  MobileRTC.h
 //  MobileRTC
 //
-//  Created by Zoom Video Communications on 8/7/14.
+//  Created by Robust Hu on 8/7/14.
 //  Copyright (c) 2019 Zoom Video Communications, Inc. All rights reserved.
 //
 #import <UIKit/UIKit.h>
@@ -35,7 +35,6 @@
 #import <MobileRTC/MobileRTCWaitingRoomService.h>
 #import <MobileRTC/MobileRTCRenderer.h>
 #import <MobileRTC/MobileRTCAudioRawDataHelper.h>
-#import <MobileRTC/MobileRTCVideoSourceHelper.h>
 #import <MobileRTC/MobileRTCSMSService.h>
 
 /*!
@@ -99,8 +98,6 @@
     MobileRTCWaitingRoomService     *_waitingRoomService;
     
     MobileRTCSMSService             *_smsService;
-    
-    MobileRTCVideoSourceHelper      *_videoSourceHelper;
 }
 
 /*!
@@ -136,9 +133,46 @@
  @brief Call the function to switch MobileRTC domain.
  @param newDomain The new domain.
  @return YES indicates successfully. Otherwise not.
- @warning After switch domain, need to auth again.
  */
 - (BOOL)switchDomain:(NSString * _Nonnull)newDomain force:(BOOL)force;
+
+/*!
+ @deprecated This method will be deleted in next release.
+ @brief Call the function to initialize MobileRTC.
+ @warning The sharedSDK will be instantiated only once over the lifespan of the application. Configure the client with the specified key and secret.
+ @param domain The domain is used to start/join a ZOOM meeting.
+ @param enableLog Set MobileRTC log enable or not. The path of Log: Sandbox/AppData/tmp/
+ */
++ (void)initializeWithDomain:(NSString * _Nonnull)domain enableLog:(BOOL)enableLog DEPRECATED_MSG_ATTRIBUTE("Will be deleted in the next release. Please use [[MobileRTC sharedRTC] initialize:context] instead");
+
+/*!
+ @deprecated This method will be deleted in next release.
+ @brief Call the function to initialize MobileRTC.
+ @warning The sharedSDK will be instantiated only once over the lifespan of the application. Configure the client with the specified key and secret.
+ @warning This method is optional, if the MobileRTCResources.bundle is located in main bundle, please use + (void)initializeWithDomain:(NSString*)domain enableLog:(BOOL)enableLog to initialize MobileRTC; otherwise it is necessary to use the method for initialize MobileRTC.
+ @param domain The domain is used to start/join a ZOOM meeting.
+ @param enableLog Set MobileRTC log enable or not. The path of Log: Sandbox/AppData/tmp/
+ @param bundleResPath Set the path of MobileRTC resource bundle.
+ */
++ (void)initializeWithDomain:(NSString * _Nonnull)domain enableLog:(BOOL)enableLog bundleResPath:(NSString * _Nullable)bundleResPath DEPRECATED_MSG_ATTRIBUTE("Will be deleted in the next release. Please use [[MobileRTC sharedRTC] initialize:context] instead");
+
+/*!
+ @deprecated This method will be deleted in next release.
+ @brief Set MobileRTC client domain.
+ @warning Set the domain while initializing MobileRTC. 
+ @param domain The domain is used to start/join a ZOOM meeting.
+ @warning It is necessary to call the function once the application starts. 
+ */
+- (void)setMobileRTCDomain:(NSString * _Nonnull)domain DEPRECATED_MSG_ATTRIBUTE("Will be deleted in the next release. Please use [[MobileRTC sharedRTC] initialize:context] instead");
+
+/*!
+ @deprecated This method will be deleted in next release.
+ @note Please use + (void)initializeWithDomain:(NSString*)domain enableLog:(BOOL)enableLog bundleResPath:(NSString*)bundleResPath;
+ @brief Set the path of MobileRTC resource bundle.
+ @warning This method is optional, the MobileRTCResources.bundle is located in main bundle if the function is not called; otherwise it is necessary to set the MobileRTC Resources path while initializing MobileRTC. 
+ @param path The path of MobileRTC Resources bundle.
+ */
+- (void)setMobileRTCResPath:(NSString * _Nullable)path DEPRECATED_MSG_ATTRIBUTE("Will be deleted in the next release. Please use [[MobileRTC sharedRTC] initialize:context] instead");
 
 /*!
  @brief Set the name of Localizable file for MobileRTC.
@@ -244,6 +278,13 @@
 - (void)setLanguage:(NSString * _Nullable)lang;
 
 /*!
+ @deprecated This method will be deleted in next release.
+ @brief Set the AppGroup ID of the application. 
+ @warning The Method is used for iOS Replaykit Screen share integration and should be called after SDK initiation.
+ */
+- (void)setAppGroupsName:(NSString * _Nullable)appGroupId DEPRECATED_MSG_ATTRIBUTE("Will be deleted in the next release. Please use [[MobileRTC sharedRTC] initialize:context] instead");
+
+/*!
  @brief Notify common layer that application will resign active. Call the systematical method and then call the appWillResignActive via applicationWillResignActive.
  @warning It is necessary to call the method in AppDelegate "- (void)applicationWillResignActive:(UIApplication *)application".  
  */
@@ -268,33 +309,9 @@
 - (void)appWillTerminate;
 
 /*!
-@brief Notify MobileRTC when the root UIViewController's traitCollection will change
-@param newCollection The first parameter of willTransitionToTraitCollection:withTransitionCoordinator which is UIContentContainer method.
-@param coordinator The second parameter of willTransitionToTraitCollection:withTransitionCoordinator which is UIContentContainer method.
-@warning Not work in Custom In-Meeting UI.
-@warning Call this method when the window.rootViewController recevived willTransitionToTraitCollection:withTransitionCoordinator.
-*/
-- (void)willTransitionToTraitCollection:(UITraitCollection *_Nullable)newCollection withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>_Nullable)coordinator;
-
-/*!
-@brief Notify MobileRTC when the root UIViewController's view size will change
-@param size The first parameter of viewWillTransitionToSize:withTransitionCoordinator.
-@param coordinator the second parameter of viewWillTransitionToSize:withTransitionCoordinator.
-@warning Not work in Custom In-Meeting UI.
-@warning Call this method when the window.rootViewController recevived viewWillTransitionToSize:withTransitionCoordinator.
-*/
-- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>_Nullable)coordinator;
-
-/*!
  @brief Gets whether you have permission to use raw data.
  @warning It is necessary to call the method after auth success.
  */
 - (BOOL)hasRawDataLicense;
-
-/*!
-@brief Get the video source helper.@see MobileRTCVideoSourceHelper
-@return The object of MobileRTCVideoSourceHelper.
-*/
-- (MobileRTCVideoSourceHelper * _Nullable)getVideoSourceHelper;
 
 @end
