@@ -2,7 +2,7 @@
 //  MobileRTCMeetingChat.h
 //  MobileRTC
 //
-//  Created by Zoom Video Communications on 2017/9/15.
+//  Created by Robust Hu on 2017/9/15.
 //  Copyright © 2019年 Zoom Video Communications, Inc. All rights reserved.
 //
 
@@ -42,12 +42,6 @@
  @brief The message timestamps.
  */
 @property (nonatomic, retain, readwrite) NSDate *_Nullable date;
-
-/*!
- @brief The Chat message type.
- */
-@property (nonatomic, readwrite) MobileRTCChatMessageType chatMessageType;
-
 /*!
  @brief Whether the message is sent by the user himself or not.
  */
@@ -56,16 +50,5 @@
  @brief Whether the message is private or not.
  */
 @property (nonatomic, readwrite) BOOL isPrivate;
-/*!
- @brief Whether the message is send to all or not.
- */
-@property (nonatomic, readwrite) BOOL isChatToAll;
-/*!
- @brief Whether the message is send to all panelist or not.
- */
-@property (nonatomic, readwrite) BOOL isChatToAllPanelist;
-/*!
- @brief Whether the message is send to waiting room or not.
- */
-@property (nonatomic, readwrite) BOOL isChatToWaitingroom;
+
 @end
